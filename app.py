@@ -12,7 +12,7 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20 MB
 app.config['UPLOAD_EXTENSIONS'] = ['.csv']
 
 # Configure logging
@@ -172,25 +172,35 @@ def send_events():
             description = record[description_idx]
             timestamp_str = record[datetime_idx]
 
-            # Ensure timestamp has time component
-            if len(timestamp_str) == 10:
-                timestamp_str += " 00:00"
-
-            # Parse timestamp directly as UTC
+            # Parse timestamp with multiple format support
             from datetime import datetime
             import pytz
-            try:
-                dt = datetime.strptime(timestamp_str, "%m/%d/%Y %H:%M")
-                dt = pytz.utc.localize(dt)  # Mark the time as UTC
-                unix_timestamp = int(dt.timestamp() * 1000)
-            except ValueError as ve:
-                logging.error(f"Error parsing timestamp for user_id {user_id}: {ve}")
-                continue
 
-            # Validate user_id length
-            if len(user_id) < 5:
-                logging.warning(f"Skipping event for user_id {user_id}: ID length is less than 5 characters")
-                continue
+            # Try different timestamp formats
+            timestamp_formats = [
+                "%m/%d/%Y %H:%M",           # Original format: "03/15/2024 13:30"
+                "%Y-%m-%d %H:%M:%S.%f %Z",  # New format: "2024-10-03 13:59:39.598 UTC"
+                "%Y-%m-%d %H:%M:%S %Z"      # Alternative without milliseconds
+            ]
+
+            dt = None
+            for fmt in timestamp_formats:
+                try:
+                    if 'UTC' in timestamp_str:
+                        dt = datetime.strptime(timestamp_str, fmt)
+                        if fmt.endswith('%Z'):
+                            dt = dt.replace(tzinfo=pytz.UTC)
+                    else:
+                        dt = datetime.strptime(timestamp_str, fmt)
+                        dt = pytz.utc.localize(dt)
+                    break
+                except ValueError:
+                    continue
+
+            if dt is None:
+                raise ValueError(f"Could not parse timestamp: {timestamp_str}")
+
+            unix_timestamp = int(dt.timestamp() * 1000)
 
             # Create and send event to Amplitude
             event = BaseEvent(
@@ -203,6 +213,7 @@ def send_events():
                 time=unix_timestamp
             )
             amplitude_client.track(event)
+            logging.info(f"Sending event to Amplitude: {event}")
 
         except Exception as e:
             logging.error(f"Error sending event for user_id {user_id}: {e}")

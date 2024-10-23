@@ -85,12 +85,22 @@ document.getElementById('cancel-button').addEventListener('click', function() {
 // Triggers the actual event sending process
 document.getElementById('send-events-button').addEventListener('click', function() {
     if (confirm('Are you sure you want to send these events to Amplitude?')) {
+        // Show loading overlay
+        document.getElementById('loading-overlay').style.display = 'flex';
+        
         fetch('/send-events', { method: 'POST' })
             .then(response => response.text())
             .then(message => {
+                // Hide loading overlay
+                document.getElementById('loading-overlay').style.display = 'none';
                 alert(message);
                 window.location.reload();
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                // Hide loading overlay and show error
+                document.getElementById('loading-overlay').style.display = 'none';
+                console.error(err);
+                alert('An error occurred while sending events to Amplitude');
+            });
     }
 });
