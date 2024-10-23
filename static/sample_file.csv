@@ -1,0 +1,6 @@
+user_id,incident_name,short_description,datetime
+10000,example_incident_1,User couldn't log in,10/22/2024 00:00
+10001,example_incident_1,User couldn't log in,10/22/2024 00:00
+10002,example_incident_2,Capybaras invaded the office,10/22/2024 12:01
+10003,example_incident_2,Capybaras invaded the office,10/22/2024 12:01
+10004,example_incident_2,Capybaras invaded the office,10/22/2024 12:01

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 Incident Events Upload</title>
+    <!-- htmx for dynamic content -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cera+Pro:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <h1>🔥 Incident Events Upload</h1>
+        <div id="sample-data">
+            <p>Use</p>
+            <a target="_blank" href="https://docs.google.com/spreadsheets/d/1E-Czq8y40xnjFQXtNKuJZXnhEQyPjYJyLc5pSq6gn0c/edit?usp=sharing">Google Sheet Sample Data</a>
+            <p> or </p>
+            <a target="_blank" href="/static/sample_file.csv" download>Download Sample CSV</a>
+            <p>to get started.</p>
+        </div>
+    </nav>
+    <!-- Drop Zone for File Upload -->
+    <div id="drop-zone" class="drop-zone">
+        Drag and drop your CSV file here
+        <div class="or-separator">or</div>
+        <input type="file" id="file-input" accept=".csv" style="display: none;">
+        <button onclick="document.getElementById('file-input').click()">Choose File</button>
+    </div>
+    <!-- Processing Indicator -->
+    <div id="processing"></div>
+    <!-- Result Preview -->
+    <div id="result"> Your results preview will show here </div>
+    <div id="action-buttons">
+        <!-- Cancel Button -->
+        <button id="cancel-button" style="display:none;">Cancel</button>
+        <!-- Send Events Button -->
+        <button id="send-events-button" style="display:none;">Send Events</button>
+    </div>
+
+    <!-- JavaScript for Drag and Drop, File Processing, and UI Updates -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
