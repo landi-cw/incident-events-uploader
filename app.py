@@ -165,6 +165,12 @@ def send_events():
     description_idx = headers.index('short_description')
     datetime_idx = headers.index('datetime')
 
+    successful_events = 0
+    failed_events = 0
+    total_events = len(uploaded_data[1:])
+
+    logging.info(f"Starting to process {total_events} events...")
+
     for record in uploaded_data[1:]:
         try:
             user_id = record[user_id_idx]
@@ -208,19 +214,44 @@ def send_events():
                 event_type="Incident",
                 event_properties={
                     "name": incident_name,
-                    "description": description
+                    "description": description,
+                    "original_timestamp": timestamp_str
                 },
                 time=unix_timestamp
             )
             amplitude_client.track(event)
-            logging.info(f"Sending event to Amplitude: {event}")
+            successful_events += 1
+            logging.info(
+                f"Event {successful_events}/{total_events} sent successfully:\n"
+                f"  User ID: {user_id}\n"
+                f"  Incident: {incident_name}\n"
+                f"  Time: {timestamp_str}\n"
+                f"  Description: {description[:100]}{'...' if len(description) > 100 else ''}"
+            )
 
         except Exception as e:
-            logging.error(f"Error sending event for user_id {user_id}: {e}")
+            failed_events += 1
+            logging.error(
+                f"Failed to send event {successful_events + failed_events}/{total_events}:\n"
+                f"  User ID: {user_id}\n"
+                f"  Error: {str(e)}"
+            )
             continue
 
     amplitude_client.flush()
-    return "Events sent successfully.", 200
+    
+    result_message = (
+        f"Processing complete. "
+        f"Successfully sent {successful_events} events, "
+        f"Failed to send {failed_events} events."
+    )
+    logging.info(result_message)
+    
+    if failed_events > 0 and successful_events > 0:
+        return f"Partial success. Sent {successful_events} events, {failed_events} events failed to send.", 207  # Multi-Status
+    elif failed_events > 0:
+        return f"Failed to send {failed_events} events.", 207  # Multi-Status
+    return f"Successfully sent {successful_events} events.", 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
